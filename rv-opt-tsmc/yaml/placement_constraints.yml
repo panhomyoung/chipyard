@@ -1,0 +1,15 @@
+#!!!Do not modify this file.
+# This setting will be replaced later on. Changing it may cause errors.
+
+vlsi.inputs.placement_constraints:
+  - path: "ChipTop"
+    type: toplevel
+    x: 0
+    y: 0
+    width: 800
+    height: 500
+    margins:
+      left: 0
+      right: 0
+      top: 0
+      bottom: 0

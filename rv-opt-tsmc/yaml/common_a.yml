@@ -1,0 +1,79 @@
+#========Technology Setup========
+# Technology used is ASAP7
+vlsi.core.technology: "hammer.technology.asap7"
+#vlsi.core.technology_path: ["/export/home/yyzhao/vm/shared/workspace/chipyard/vlsi/hammer/src/hammer-vlsi/technology"]
+#vlsi.core.technology_path_meta: "append"
+technology.asap7:
+  # Specify dir with ASAP7 Calibre deck tarball
+  tarball_dir: "/export/home/yyzhao/vm/shared/workspace/library/asap7"
+  # Specify PDK and std cell install directories
+  pdk_install_dir: "/export/home/yyzhao/vm/shared/workspace/library/asap7/asap7PDK_r1p7"
+  stdcell_install_dir: "/export/home/yyzhao/vm/shared/workspace/library/asap7/asap7sc7p5t_27"
+#================================
+#========General Hammer Inputs========
+vlsi.inputs:
+  # Hammer will auto-generate a CPF for simple power designs; see hammer/src/hammer-vlsi/defaults.yml for more info
+  power_spec_mode: "auto"
+  power_spec_type: "cpf"
+
+  # Specify clock signals
+  clocks: [
+    {name: "clock_clock", period: "1ns", transition: "0.1ns"}
+  ]
+
+vlsi.core:
+  #!!! Innovus can only support 16 threads for now. We use 2 for CAD. Opt alg batch size is 8.
+  max_threads: 8
+  node: 7
+
+  # Generate Make include to aid in flow 
+  build_system: make
+
+synthesis.genus:
+  no_write_db: true
+  generate_only: false
+  reduce_drive_usage: true
+
+par.generate_power_straps_options.by_tracks:
+# track_offset: 9.6
+  pin_layers: ["M9"]
+
+par.place_blockage_spacing: 0.24
+
+par.innovus:
+  generate_only: false
+  no_write_db: true
+  reduce_drive_usage: true
+
+# Pin placement constraints
+vlsi.inputs.pin_mode: generated
+vlsi.inputs.pin:
+  generate_mode: semi_auto
+  edge_yielding: 9.6
+  assignments: [
+  {pins: "axi4_mem_0_clock", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_reset", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_aw*", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_w_ready", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_w_valid", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_w_bits_strb*", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_w_bits_last", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_r_bits_id*", layers: ["M7"], side: "top", width: 0.64, depth: 0.64},
+
+  {pins: "axi4_mem_0_bits_r_ready", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_r_valid", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_r_bits_resp*", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_r_bits_last", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_ar*", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_b*", layers: ["M7"], side: "bottom", width: 0.64, depth: 0.64},
+
+  {pins: "uart*", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+  {pins: "jtag*", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+  {pins: "serial_tl*", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+  {pins: "custom_boot", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+  {pins: "clock_clock", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+  {pins: "reset", layers: ["M6"], side: "right", width: 0.64, depth: 0.64},
+
+  {pins: "axi4_mem_0_bits_w_bits_data*", layers: ["M6"], side: "left", width: 0.64, depth: 0.64},
+  {pins: "axi4_mem_0_bits_r_bits_data*", layers: ["M6"], side: "left", width: 0.64, depth: 0.64}
+  ]

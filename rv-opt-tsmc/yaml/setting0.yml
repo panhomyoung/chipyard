@@ -1,0 +1,53 @@
+---
+# The key word "${PROCESS_ID}" will be replaced by actual thread ID number during execution.
+# Do Not include any NUMBER in paths or file names because it may cause errors.
+# E.g. Assume the thread ID is 5, then "~/workspace/p${PROCESS_ID}" will be changed to "~/workspace/p5"
+
+working_dir: "/export/home/yyzhao/vm/shared/workspace/dump/p${PROCESS_ID}"
+config_dir: "/export/home/yyzhao/vm/shared/workspace/chipyard0/generators/boom-opt/src/main/scala"
+config_name: "OptBoomL1Config${PROCESS_ID}"
+
+arch:   # RTL generation with BOOM
+  config_file: "/export/home/yyzhao/vm/shared/workspace/rv-opt-tsmc/yaml/design_space.yml"
+
+sim:
+  benchmark_bin:
+    # To do: Add CoreMark benckmark. There're issues to solve.
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/whetstone.riscv" #-E
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/pmp.riscv" #-E
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/dhrystone.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/fir2dim.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/mt-vvadd.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/multiply.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/mt-matmul.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/median.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/qsort.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/rsort.riscv" #-E
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/mm.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/vvadd.riscv"
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/spmv.riscv" #-E
+    - "/export/home/yyzhao/vm/shared/workspace/chipyard0/toolchains/riscv-tools/riscv-tests/build/benchmarks/towers.riscv" #-E
+
+syn:
+  config_file: "/export/home/yyzhao/vm/shared/workspace/rv-opt-tsmc/yaml/design_space.yml"
+
+#par:
+#  config_file: "/export/home/yyzhao/vm/shared/workspace/rv-opt/yaml/design_space.yml"
+
+ppa_weight:
+  # CPI means 'average cycles per instruction'. CPI = 1.0/IPC
+  cpi: 0.3333
+  power: 0.3333
+  area: 0.3333
+
+reference:
+  cpi: 1.0
+  #power: 143.83115550
+  power: 27.72408
+  #area: 6567369.44602
+  area: 6967669.23
+constraints:
+  cpi: -1.0
+  power: -80.0
+  area: -5001974.39123
+

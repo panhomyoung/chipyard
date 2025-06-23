@@ -1,0 +1,30 @@
+# Default settings for synthesis in Genus, for project/technology configuration and overriding.
+synthesis.genus:
+  # Location of the binary.
+  genus_bin: "${cadence.cadence_home}/genus${synthesis.genus.version}/bin/genus"
+  genus_bin_meta: lazysubst # we want later overrides to be able to affect this
+
+  # Genus version to use.
+  # Used to locate the binary - e.g. the '171' in ${cadence.cadence_home}/GENUS/GENUS171/bin/genus
+  version: "1910"
+
+  # Generate the TCL file but do not run it yet.
+  generate_only: false
+
+  # Do not write binary db files
+  # Set to 'True' to prevent writing db files as check points
+  no_write_db: false
+  
+  # Keep reports only, which are necessary for PPA calculation. (by Tianning Gao)
+  # Also deletes RTL files after 
+  # type: bool
+  reduce_drive_usage: false
+
+  # Print Tcl command outputs or not. (by Tianning Gao)
+  # type: bool
+  # Set to 'true' to prevent Genus from printing Tcl command outputs in terminal.
+  silent_run: false
+
+  # Tcl commands to set Genus attributes. (by Tianning Gao)
+  # type: List[str]
+  pre_syn_cmd: []

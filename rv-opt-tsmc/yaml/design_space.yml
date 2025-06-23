@@ -1,0 +1,421 @@
+---
+# The key word "${PROCESS_ID}" will be replaced by actual thread ID number during execution
+# Do Not include any NUMBER in paths or file names because it may cause errors.
+# E.g. Assume the thread ID is 5, then "~/workspace/p${PROCESS_ID}" will be changed to "~/workspace/p5"
+
+# Currently, it's supposed to be only one of ['less_than', 'no_less_than', 'greater_than', 'no_greater_than', 'divisible_by'] in the attribute field.
+# If the value passed in does not meet all variable constraints, the parser will REVERSELY! find the first legal value.
+
+arch:
+  root:
+    #========================================================================================================    
+    - text: "package boom_opt\n\
+    \n\
+    import chisel3._\n\
+    import chisel3.util.{log2Up}\n\
+    \n\
+    import freechips.rocketchip.config.{Parameters, Config, Field}\n\
+    import freechips.rocketchip.subsystem._\n\
+    import freechips.rocketchip.devices.tilelink.{BootROMParams}\n\
+    import freechips.rocketchip.diplomacy.{SynchronousCrossing, AsynchronousCrossing, RationalCrossing}\n\
+    import freechips.rocketchip.rocket._\n\
+    import freechips.rocketchip.tile._\n\
+    \n\
+    import boom.ifu._\n\
+    import boom.exu._\n\
+    import boom.lsu._\n\
+    \n\
+    class WithNOptBoomConfig${PROCESS_ID}(n: Int = 1, overrideIdOffset: Option[Int] = None) extends Config("
+
+    - module: ["WithBoom2BPD", "WithTAGELBPD", "WithAlpha21264BPD"] # 0
+      default: "WithTAGELBPD"
+      prefix: "boom.common."
+
+    - text: "\
+      new Config((site, here, up) => {\n\
+        case TilesLocated(InSubsystem) => {\n\
+          val prev = up(TilesLocated(InSubsystem), site)\n\
+          val idOffset = overrideIdOffset.getOrElse(prev.size)\n\
+          (0 until n).map { i =>\n\
+            boom.common.BoomTileAttachParams(\n\
+              tileParams = boom.common.BoomTileParams(\n\
+                core = boom.common.BoomCoreParams("
+    #========================================================================================================                
+    # FrontEnd
+    - attribute: "fetchWidth" #1
+      type: "categorical"
+      value: [4,8]
+      no_less_than: "decodeWidth"  
+
+    - attribute: "numFetchBufferEntries" #2
+      type: "categorical"
+      value: [8,16,24,32,35,40]
+      greater_than: "fetchWidth"  
+      divisible_by: "decodeWidth" 
+
+    - attribute: "numRasEntries" #3
+      type: "categorical"
+      value: [16,24,32]
+
+    - attribute: "maxBrCount" #4
+      type: "categorical"
+      value: [8,12,16,20]
+      
+    # IDU
+    - attribute: "decodeWidth" #5
+      type: "categorical"
+      value: [1,2,3,4,5]
+
+    - attribute: "numRobEntries" #6
+      type: "categorical"
+      value: [32,64,96,128,130]
+      divisible_by: "decodeWidth" 
+
+    - attribute: "numIntPhysRegisters" #7
+      type: "categorical"
+      value: [48,64,80,96,112]
+
+    - attribute: "numFpPhysRegisters"
+      type: "categorical"
+      equal_to: "numIntPhysRegisters"
+
+    # EU
+    - text: "\
+                issueParams = Seq( \n\
+                  IssueParams("
+    # EU->MemIssueWidth
+    - attribute: "issueWidth" #8
+      type: "categorical"
+      value: [1,2]
+
+    - attribute: "numEntries" 
+      type: "categorical"
+      value: [8,12,16,24,24]
+      # E.g.: Since "numEntries" is related to "decodeWidth", "numEntries" must also be categorical and have 5 available values, which is same as "decodeWidth".
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_MEM.litValue\n\
+                  ),\n\
+                  IssueParams("
+
+    # EU->IntIssueWidth
+    - attribute: "issueWidth" #9
+      type: "categorical"
+      value: [1,2,3,4,5]
+      no_greater_than: "decodeWidth"
+      reverse_search: true
+
+    - attribute: "numEntries"
+      type: "categorical"
+      value: [8,20,32,40,40]
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_INT.litValue\n\
+                  ),\n\
+                  IssueParams("
+                  
+    # EU->FpIssueWidth
+    - attribute: "issueWidth"
+      type: "categorical"
+      equal_to: "issueWidth" # MemIssueWidth == FpIssueWidth. If multiple attributes have same names, the parser will find the first attribute with this name.
+
+    - attribute: "numEntries"
+      type: "categorical"
+      value: [8,16,24,32,32]
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_FP.litValue\n\
+                  )\n\
+                ),"
+
+    - attribute: "numLdqEntries" #10
+      type: "categorical"
+      value: [8,16,24,32]
+
+    - attribute: "numStqEntries"
+      type: "categorical"
+      equal_to: "numLdqEntries"
+
+    #--------Extra attributes--------
+    - attribute: "enablePrefetching" #11
+      type: "categorical"
+      value: ["false","true"]
+
+    # - attribute: "enableFastPNR" # -P
+    #   type: "categorical"
+    #   value: ["false","true"]
+
+    - attribute: "enableSFBOpt" #12 
+      type: "categorical"
+      value: ["false","true"]
+
+    - attribute: "numRXQEntries" #13
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "numRCQEntries" #14
+      type: "categorical"
+      value: [8,16,32]
+
+    - attribute: "nL2TLBEntries" #15
+      type: "categorical"
+      value: [128,256,512,1024]
+
+    - attribute: "nL2TLBWays" #16
+      type: "categorical"
+      value: [1,2,4,8]
+
+    - text: "\
+                ftq = FtqParameters("
+    # number of entries for FTQ
+    - attribute: "nEntries" 
+      type: "categorical"
+      value: [16,32,32,40,40]
+      relate_to: "decodeWidth"
+
+    - text: "),\n\
+                fpu = Some(freechips.rocketchip.tile.FPUParams(sfmaLatency=4, dfmaLatency=4, divSqrt=true))\n\
+              ),\n\
+              \n\
+              \n\
+              icache = Some(\n\
+                ICacheParams("
+
+    - attribute: "nWays" #17
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nTLBWays" #18
+      type: "categorical"
+      value: [8,16,32]
+
+    - attribute: "fetchBytes" 
+      type: "categorical"
+      value: [8,16]
+      relate_to: "fetchWidth"
+
+    - text: "\
+                      rowBits=site(SystemBusKey).beatBits, nSets=64, nTLBSets=1\n\
+                )\n\
+              ),\n\
+              \n\
+              dcache = Some(\n\
+                DCacheParams("
+
+    - attribute: "nWays" #19
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nMSHRs" #20
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nTLBWays" #21
+      type: "categorical"
+      value: [8,16,32]
+
+    - text: "\
+                        rowBits=site(SystemBusKey).beatBits, nSets=64, nTLBSets=1\n\
+                  )\n\
+                ),\n\
+                \n\
+                hartId = i + idOffset\n\
+              ),\n\
+              crossingParams = RocketCrossingParams()\n\
+            )\n\
+          } ++ prev\n\
+        }\n\
+        case SystemBusKey => up(SystemBusKey, site).copy("
+
+    - attribute: "beatBytes"
+      type: "categorical"
+      value: [8,16]
+      relate_to: "fetchWidth"
+
+    - text: ")\
+        case XLen => 64\n\
+      })\n\
+    )"
+
+syn:
+  #-U => Unlimited access. We can use these attributes freely.
+  #-L => Limited access. These attributes require additional license feature to be enabled.
+  #-P => Problematic attributes. Setting these attributes may cause problem. Comment them out!
+  root:
+    - attribute: "time_recovery_arcs" #22-U
+      type: "categorical"
+      value: ["false", "true"]
+    
+    - attribute: "auto_partition"  #23-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "dp_analytical_opt" #24-U
+      type: "categorical"
+      value: ["off", "standard", "extreme"]
+      default: "off"
+
+    - attribute: "dp_area_mode" #25-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "dp_csa" #26-U
+      type: "categorical"
+      value: ["basic", "none"]
+
+    # - attribute: "dp_csa_factorize" #-P
+    #   type: "categorical"
+    #   value: ["basic", "none"]
+
+    - attribute: "dp_rewriting" #27-U
+      type: "categorical"
+      value: ["basic", "advanced", "none"]
+
+    - attribute: "dp_sharing" #28-U
+      type: "categorical"
+      value: ["advanced", "basic", "none"]
+
+    # - attribute: "dp_speculation"  #-P
+    #   type: "categorical"
+    #   value: ["basic", "none"]
+
+    - attribute: "exact_match_seq_async_ctrls" #29-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "exact_match_seq_sync_ctrls" #30-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_enable_floating_output_check" #31-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_force_constant_removal" #32-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_lp_power_analysis_effort" #33-U
+      type: "categorical"
+      value: ["low","medium","high"]
+
+    - attribute: "lbr_seq_in_out_phase_opto" #34-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "optimize_net_area" #35-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "retime_effort_level" #36-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "medium"
+
+    - attribute: "retime_optimize_reset" #37-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "syn_generic_effort" #38-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "medium"
+
+    - attribute: "syn_map_effort" #39-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "high"
+
+    - attribute: "syn_opt_effort" #40-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "high"
+
+    - attribute: "leakage_power_effort" #41-U
+      type: "categorical"
+      value: ["low","medium","high"]
+
+    # - attribute: "lp_clock_gating_exceptions_aware"  #-P
+    #   type: "categorical"
+    #   value: ["true", "false"]
+
+    - attribute: "lp_power_analysis_effort" #42-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "medium"
+
+  design:
+    - attribute: "latch_max_borrow" #43,44-U
+      type: "discrete"
+      # Value range defined by [begin, end, step]
+      value: [1,500,1]
+      ignore: "no_value"
+
+    # - attribute: "max_capacitance" # -U
+    #   type: "discrete"
+    #   # Value range defined by [begin, end]
+    #   value: [0.03, 1.0, 0.01]  #Unit pre-set to pF
+    #   ignore: "no_value"
+
+    - attribute: "max_fanout" #45,46-U
+      type: "discrete"
+      # In Giga BOOM WNS path, fanout of CLK is 29
+      value: [2, 64, 1]
+      ignore: "no_value"
+
+    # Don't optimize this attribute for now.
+    # - attribute: "max_transition" #-U
+    #   type: "discrete"
+    #   value: [1, 10, 1]
+    #   ignore: "no_value"
+
+    - attribute: "lp_clock_gating_max_flops" #47,48-U
+      type: "categorical"
+      value: [8,16,32]
+      ignore: "no_value"
+
+    # - attribute: "lp_clock_tree_leaf_max_fanout"
+    #   type: "discrete"
+    #   value: [1, 64, 1]
+
+    - attribute: "lp_power_optimization_weight" #49,50-U
+      type: "discrete"
+      value: [0.1,0.9,0.1]
+      ignore: "no_value"
+
+    - text: "\
+    if {\"no_value\" != [get_db [vfind /designs -design ChipTop] .lp_power_optimization_weight]} {"
+
+    - attribute: "max_dynamic_power" #51-U
+      type: "discrete"
+      # Range without power opt:
+      #   value: [1.421, 102.511] mW
+      #value: [30, 300, 0.1]
+      value: [3, 150, 0.1]
+      # ignore: "no_value"
+
+    - attribute: "max_leakage_power" #52-U
+      type: "discrete"
+      # Range without power opt
+      #   value: [3.336, 54.597] mW
+      #value: [15, 100, 0.1]
+      value: [5, 100, 0.1]
+      # ignore: "no_value"
+
+    - text: "\
+    }"

@@ -1,0 +1,589 @@
+---
+# The key word "${PROCESS_ID}" will be replaced by actual thread ID number during execution
+# Do Not include any NUMBER in paths or file names because it may cause errors.
+# E.g. Assume the thread ID is 5, then "~/workspace/p${PROCESS_ID}" will be changed to "~/workspace/p5"
+
+# Currently, it's supposed to be only one of ['less_than', 'no_less_than', 'greater_than', 'no_greater_than', 'divisible_by'] in the attribute field.
+# If the value passed in does not meet all variable constraints, the parser will REVERSELY! find the first legal value.
+
+arch:
+  root:
+    #========================================================================================================    
+    - text: "package boom_opt\n\
+    \n\
+    import chisel3._\n\
+    import chisel3.util.{log2Up}\n\
+    \n\
+    import freechips.rocketchip.config.{Parameters, Config, Field}\n\
+    import freechips.rocketchip.subsystem._\n\
+    import freechips.rocketchip.devices.tilelink.{BootROMParams}\n\
+    import freechips.rocketchip.diplomacy.{SynchronousCrossing, AsynchronousCrossing, RationalCrossing}\n\
+    import freechips.rocketchip.rocket._\n\
+    import freechips.rocketchip.tile._\n\
+    \n\
+    import boom.ifu._\n\
+    import boom.exu._\n\
+    import boom.lsu._\n\
+    \n\
+    class WithNOptBoomConfig${PROCESS_ID}(n: Int = 1, overrideIdOffset: Option[Int] = None) extends Config(\n\
+      new boom.common.WithTAGELBPD ++ // Default to TAGE-L BPD\n\
+      new Config((site, here, up) => {\n\
+        case TilesLocated(InSubsystem) => {\n\
+          val prev = up(TilesLocated(InSubsystem), site)\n\
+          val idOffset = overrideIdOffset.getOrElse(prev.size)\n\
+          (0 until n).map { i =>\n\
+            boom.common.BoomTileAttachParams(\n\
+              tileParams = boom.common.BoomTileParams(\n\
+                core = boom.common.BoomCoreParams("
+    #========================================================================================================                
+    # FrontEnd
+    - attribute: "fetchWidth" #0
+      type: "categorical"
+      value: [4,8]
+      no_less_than: "decodeWidth"  
+
+    - attribute: "numFetchBufferEntries" #1
+      type: "categorical"
+      value: [8,16,24,32,35,40]
+      greater_than: "fetchWidth"  
+      divisible_by: "decodeWidth" 
+
+    - attribute: "numRasEntries" #2
+      type: "categorical"
+      value: [16,24,32]
+
+    - attribute: "maxBrCount" #3
+      type: "categorical"
+      value: [8,12,16,20]
+      
+    # IDU
+    - attribute: "decodeWidth" #4
+      type: "categorical"
+      value: [1,2,3,4,5]
+
+    - attribute: "numRobEntries" #5
+      type: "categorical"
+      value: [32,64,96,128,130]
+      divisible_by: "decodeWidth" 
+
+    - attribute: "numIntPhysRegisters" #6
+      type: "categorical"
+      value: [48,64,80,96,112]
+
+    - attribute: "numFpPhysRegisters"
+      type: "categorical"
+      equal_to: "numIntPhysRegisters"
+
+    # EU
+    - text: "\
+                issueParams = Seq( \n\
+                  IssueParams("
+    # EU->MemIssueWidth
+    - attribute: "issueWidth" #7
+      type: "categorical"
+      value: [1,2]
+
+    - attribute: "numEntries" 
+      type: "categorical"
+      value: [8,12,16,24,24]
+      # E.g.: Since "numEntries" is related to "decodeWidth", "numEntries" must also be categorical and have 5 available values, which is same as "decodeWidth".
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_MEM.litValue\n\
+                  ),\n\
+                  IssueParams("
+
+    # EU->IntIssueWidth
+    - attribute: "issueWidth" #8
+      type: "categorical"
+      value: [1,2,3,4,5]
+
+    - attribute: "numEntries"
+      type: "categorical"
+      value: [8,20,32,40,40]
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_INT.litValue\n\
+                  ),\n\
+                  IssueParams("
+                  
+    # EU->FpIssueWidth
+    - attribute: "issueWidth"
+      type: "categorical"
+      equal_to: "issueWidth" # MemIssueWidth == FpIssueWidth. If multiple attributes have same names, the parser will find the first attribute with this name.
+
+    - attribute: "numEntries"
+      type: "categorical"
+      value: [8,16,24,32,32]
+      relate_to: "decodeWidth"
+
+    - attribute: "dispatchWidth"
+      type: "categorical"
+      equal_to: "decodeWidth"
+
+    - text: "\
+                      iqType=boom.common.IQT_FP.litValue\n\
+                  )\n\
+                ),"
+
+    - attribute: "numLdqEntries" #9
+      type: "categorical"
+      value: [8,16,24,32]
+
+    - attribute: "numStqEntries"
+      type: "categorical"
+      equal_to: "numLdqEntries"
+
+    - text: "\
+                ftq = FtqParameters("
+
+    - attribute: "nEntries" # number of entries for FTQ
+      type: "categorical"
+      value: [8,16,24,32,32]
+      relate_to: "decodeWidth"
+
+    - text: "),\n\
+                //nPerfCounters = 2,\n\
+                fpu = Some(freechips.rocketchip.tile.FPUParams(sfmaLatency=4, dfmaLatency=4, divSqrt=true))\n\
+              ),\n\
+              \n\
+              \n\
+              icache = Some(\n\
+                ICacheParams("
+
+    - attribute: "nWays" #10
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nTLBWays" #11
+      type: "categorical"
+      value: [8,16,32]
+
+    - attribute: "fetchBytes" 
+      type: "categorical"
+      value: [8,16]
+      relate_to: "fetchWidth"
+
+    - text: "\
+                      rowBits=site(SystemBusKey).beatBits, nSets=64\n\
+                )\n\
+              ),\n\
+              \n\
+              dcache = Some(\n\
+                DCacheParams("
+
+    - attribute: "nWays" #12
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nMSHRs" #13
+      type: "categorical"
+      value: [2,4,8]
+
+    - attribute: "nTLBWays" #14
+      type: "categorical"
+      value: [8,16,32]
+
+    - text: "\
+                        rowBits=site(SystemBusKey).beatBits, nSets=64\n\
+                  )\n\
+                ),\n\
+                \n\
+                hartId = i + idOffset\n\
+              ),\n\
+              crossingParams = RocketCrossingParams()\n\
+            )\n\
+          } ++ prev\n\
+        }\n\
+        case XLen => 64\n\
+      })\n\
+    )"
+
+syn:
+  #-U => Unlimited access. We can use these attributes freely.
+  #-L => Limited access. These attributes require additional license feature to be enabled.
+  #-P => Problematic attributes. Setting these attributes may cause problem. Comment them out!
+  root:
+    - attribute: "time_recovery_arcs" #15-U
+      type: "categorical"
+      value: ["false", "true"]
+    
+    - attribute: "auto_partition"  #16-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "dp_analytical_opt" #17-U
+      type: "categorical"
+      value: ["off", "standard", "extreme"]
+      default: "off"
+
+    - attribute: "dp_area_mode" #18-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "dp_csa" #19-U
+      type: "categorical"
+      value: ["basic", "none"]
+
+    # - attribute: "dp_csa_factorize" #-P
+    #   type: "categorical"
+    #   value: ["basic", "none"]
+
+    - attribute: "dp_rewriting" #20-U
+      type: "categorical"
+      value: ["basic", "advanced", "none"]
+
+    - attribute: "dp_sharing" #21-U
+      type: "categorical"
+      value: ["advanced", "basic", "none"]
+
+    # - attribute: "dp_speculation"  #-P
+    #   type: "categorical"
+    #   value: ["basic", "none"]
+
+    - attribute: "exact_match_seq_async_ctrls" #22-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "exact_match_seq_sync_ctrls" #23-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_enable_floating_output_check" #24-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_force_constant_removal" #25-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "iopt_lp_power_analysis_effort" #26-U
+      type: "categorical"
+      value: ["low","medium","high"]
+
+    - attribute: "lbr_seq_in_out_phase_opto" #27-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "optimize_net_area" #28-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "retime_effort_level" #29-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "medium"
+
+    - attribute: "retime_optimize_reset" #30-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "syn_generic_effort" #31-U
+      type: "categorical"
+      value: ["express","low","medium","high"]
+      default: "medium"
+
+    - attribute: "syn_map_effort" #32-U
+      type: "categorical"
+      value: ["express","low","medium","high"]
+      default: "high"
+
+    - attribute: "syn_opt_effort" #33-U
+      type: "categorical"
+      value: ["none","express","low","medium","high"]
+      default: "high"
+
+    - attribute: "leakage_power_effort" #34-U
+      type: "categorical"
+      value: ["low","medium","high"]
+
+    # - attribute: "lp_clock_gating_exceptions_aware"  #-P
+    #   type: "categorical"
+    #   value: ["true", "false"]
+
+    - attribute: "lp_power_analysis_effort" #35-U
+      type: "categorical"
+      value: ["low","medium","high"]
+      default: "medium"
+
+  design:
+    - attribute: "latch_max_borrow" #36,37-U
+      type: "discrete"
+      # Value range defined by [begin, end, step]
+      value: [1,500,1]
+      ignore: "no_value"
+
+    - attribute: "max_capacitance" #38,39-U
+      type: "discrete"
+      # Value range defined by [begin, end]
+      value: [0.03, 1.0, 0.01]  #Unit pre-set to pF
+      ignore: "no_value"
+
+    - attribute: "max_fanout" #40,41-U
+      type: "discrete"
+      # In Giga BOOM WNS path, fanout of CLK is 29
+      value: [2, 64, 1]
+      ignore: "no_value"
+
+    # Don't optimize this attribute for now.
+    # - attribute: "max_transition" #-U
+    #   type: "discrete"
+    #   value: [1, 10, 1]
+    #   ignore: "no_value"
+
+    - attribute: "lp_clock_gating_max_flops" #42,43-U
+      type: "categorical"
+      value: [8,16,32]
+      ignore: "no_value"
+
+    # - attribute: "lp_clock_tree_leaf_max_fanout"
+    #   type: "discrete"
+    #   value: [1, 64, 1]
+
+    - attribute: "lp_power_optimization_weight" #44,45-U
+      type: "discrete"
+      value: [0.1,0.9,0.1]
+      ignore: "no_value"
+
+    - text: "\
+    if {\"no_value\" != [get_db [vfind /designs -design ChipTop] .lp_power_optimization_weight]} {"
+
+    - attribute: "max_dynamic_power" #46,47-U
+      type: "discrete"
+      # Range without power opt:
+      #   value: [31.049,96.959]
+      value: [30, 300, 0.1]
+      ignore: "no_value"
+
+    - attribute: "max_leakage_power" #48,49-U
+      type: "discrete"
+      # Range without power opt
+      #   value: [19.234,60.861]
+      value: [15, 100, 0.1]
+      ignore: "no_value"
+
+    - text: "\
+    }"
+
+par:
+  #-U => Unlimited access. We can use these attributes freely.
+  #-L => Limited access. These attributes require additional license feature to be enabled.
+  #-P => Problematic attributes. Setting these attributes may cause problem. Comment them out!
+  root:
+  # place category attributes
+    - attribute: "place_detail_check_cut_spacing" #50-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "place_global_activity_power_driven_effort" #51-U
+      type: "categorical"
+      value: ["standard","high"]
+      default: "standard"
+
+    - attribute: "place_global_clock_power_driven_effort" #52-U
+      type: "categorical"
+      value: ["none", "standard","high"]
+      default: "standard"
+
+    - attribute: "place_global_activity_power_driven" #53-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    # - attribute: "place_global_auto_blockage_in_channel" #-U
+    #   type: "categorical"
+    #   value: ["none","soft","partial"]
+
+    - attribute: "place_global_clock_power_driven" #54-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    # Delete this attribute in this config. It is fixed to 'high'
+    # - attribute: "place_global_cong_effort" #-U
+    #   type: "categorical"
+    #   value: ["auto", "low", "medium", "high"]
+
+    - attribute: "place_global_place_io_pins" #55-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    # - attribute: "place_global_timing_effort" #-L
+    #   type: "categorical"
+    #   value: ["medium", "high"]
+
+  # clock tree synthesis category attributes
+    - attribute: "ccopt_merge_clock_gates" #56-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "ccopt_merge_clock_logic" #57-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "cts_max_fanout" #58-U
+      type: "discrete"
+      value: [4,64,4]
+
+    - attribute: "cts_mixed_fanout_net_type" #59-U
+      type: "categorical"
+      value: ["leaf","trunk"]
+
+    - attribute: "cts_move_clock_gates" #60-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "cts_move_logic" #61-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "cts_size_clock_gates" #62-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "cts_size_clock_sources" #63-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "cts_size_logic" #64-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "cts_use_inverters"  #65-U
+      type: "categorical"
+      value: ["true", "auto", "false"]
+      default: "auto"
+
+  # route category attributes
+    - attribute: "route_design_concurrent_minimize_via_count_effort" #66-U
+      type: "categorical"
+      value: ["low", "medium", "high"]
+      default: "low"
+
+    # Verify this before optimization
+    # - attribute: "route_design_detail_end_iteration" #-U
+    #   type: "discrete"
+    #   value: [10,20,1]
+    #   ignore: "default"
+
+    # - attribute: "route_design_detail_fix_via_density_after_via_swap" #-P
+    #   type: "categorical"
+    #   value: ["false", "true"]
+
+    # Need "route_design –wire_opt"
+    # - attribute: "route_design_detail_post_route_spread_wire" #-P
+    #   type: "categorical"
+    #   value: ["false", "auto", "0.5", "1",]
+
+    # Need "route_design –via_opt"
+    # - attribute: "route_design_detail_post_route_swap_via" #-U
+    #   type: "categorical"
+    #   value: ["none", "singlecut", "multicut"]
+
+    - attribute: "route_design_detail_post_route_via_pillar_effort" #67-U
+      type: "categorical"
+      value: ["low", "medium", "high"]
+      # default: "low"
+
+    # - attribute: "route_design_detail_post_route_wire_widen" #-P
+    #   type: "categorical"
+    #   value: ["none", "shrink", "widen"]
+
+    - attribute: "route_design_detail_postroute_via_priority" #68-U
+      type: "categorical"
+      value: ["auto", "allNets", "criticalNetsfirst", "nonCriticalNetOnly"]
+
+    # Keep this true (default). Disabling it may cause extra DRC violations.
+    # - attribute: "route_design_detail_search_and_repair" #-P
+    #   type: "categorical"
+    #   value: ["true", "false"]
+
+    - attribute: "route_design_detail_signoff_effort" #69-U
+      type: "categorical"
+      value: ["high", "medium", "low", "auto"]
+
+    - attribute: "route_design_detail_use_multi_cut_via_effort" #70-U
+      type: "categorical"
+      value: ["low","medium","high"]
+
+    - attribute: "route_design_high_freq_search_repair" #71-U
+      type: "categorical"
+      value: ["false", "auto", "true"]
+
+    - attribute: "route_design_with_timing_driven" #72-U
+      type: "categorical"
+      value: ["false", "true"]
+
+  # opt Category Attributes
+    # - attribute: "opt_add_always_on_feed_through_buffers" #-U
+    #   type: "categorical"
+    #   value: ["false", "true"]
+
+    - attribute: "opt_all_end_points" #73-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "opt_area_recovery" #74-U
+      type: "categorical"
+      value: ["default", "true"]
+
+    - attribute: "opt_consider_routing_congestion" #75-U
+      type: "categorical"
+      value: ["false", "auto", "true"]
+
+    - attribute: "opt_fix_fanout_load" #76-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "opt_fix_hold_allow_overlap" #77-U
+      type: "categorical"
+      value: ["false", "auto", "true"]
+
+    - attribute: "opt_fix_drv" #78-U
+      type: "categorical"
+      value: ["true", "false"]
+
+    - attribute: "opt_honor_density_screen" #79-U
+      type: "categorical"
+      value: ["false", "true"]
+
+    - attribute: "opt_leakage_to_dynamic_ratio" #80-U
+      type: "discrete"
+      value: [0.0, 1.0, 0.1]
+
+    # - attribute: "opt_multi_bit_flop_opt" #-P
+    #   type: "categorical"
+    #   value: ["false", "mergeOnly", "splitOnly", "true"]
+
+    - attribute: "opt_post_route_area_reclaim" #81-U
+      type: "categorical"
+      value: ["none", "setup_aware", "hold_and_setup_aware"]
+
+    - attribute: "opt_post_route_drv_recovery" #82-U
+      type: "categorical"
+      value: ["auto", "true"]
+
+    - attribute: "opt_post_route_setup_recovery" #83-U
+      type: "categorical"
+      value: ["auto", "true"]
+      
+    - attribute: "opt_power_effort" #84-U
+      type: "categorical"
+      value: ["none", "low", "high"]
+      
+      
+    # -*attribute: ""
+    #   type: ""
+    #   value: []
+
+    # - attribute: ""
+    #   type: "categorical"
+    #   value: ["false", "true"]
