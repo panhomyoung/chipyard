@@ -242,6 +242,59 @@ def ReplaceHookSynWriteReports(ht: hammer_vlsi.HammerTool) -> bool:
     
     return True
 
+def ExtraHookParRoutingLayers(ht: hammer_vlsi.HammerTool) -> bool:
+    ht.append('set_db route_design_bottom_routing_layer 1')
+    ht.append('set_db route_design_top_routing_layer 10')
+    return True
+
+def ReplaceHookParRouteDesign(ht: hammer_vlsi.HammerTool) -> bool:
+    if ht.hierarchical_mode.is_nonleaf_hierarchical():
+        ht.append('flatten_ilm')
+    ht.append('set_db design_express_route true')
+    ht.append('route_design')
+    if ht.hierarchical_mode.is_nonleaf_hierarchical():
+        ht.append('unflatten_ilm')
+    return True
+
+def ReplaceHookParWriteRegs(ht: hammer_vlsi.HammerTool) -> bool:
+    ht.append('''
+        set write_cells_ir "./find_regs_cells.json"
+        set write_cells_ir [open $write_cells_ir "w"]
+        puts $write_cells_ir "["
+
+        set refs [get_db [get_db lib_cells -if .is_sequential==true] .base_name]
+        set len [llength $refs]
+        for {set i 0} {$i < [llength $refs]} {incr i} {
+            if {$i == $len - 1} {
+                puts $write_cells_ir "    \"[lindex $refs $i]\""
+            } else {
+                puts $write_cells_ir "    \"[lindex $refs $i]\",""
+            }
+        }
+
+        puts $write_cells_ir "]"
+        close $write_cells_ir
+
+        set write_regs_ir "./find_regs_paths.json"
+        set write_regs_ir [open $write_regs_ir "w"]
+        puts $write_regs_ir "["
+
+        set regs [get_db [get_db [all_registers -edge_triggered -output_pins] -if .direction==out] .name]
+        set len [llength $regs]
+        for {set i 0} {$i < [llength $regs]} {incr i} {
+            set myreg [lindex $regs $i]
+            if {$i == $len - 1} {
+                puts $write_regs_ir "    \"$myreg\""
+            } else {
+                puts $write_regs_ir "    \"$myreg\",""
+            }
+        }
+
+        puts $write_regs_ir "]"
+        close $write_regs_ir
+    ''')
+    return True
+
 def RunShellSingle(shell_to_run:mp.Queue): #✓
     while not shell_to_run.empty():
         make_shell = shell_to_run.get_nowait()
@@ -537,9 +590,58 @@ class VLSI_Observer(hammer_vlsi.CLIDriver):
                 time.sleep(60 * n_minutes)
 
 
-        if not syn_success:            
+        if not syn_success:
             raise HammerFailed(arg_list + extra_arg_list)
-            
+
+      #===============================#
+      #==== Run place-and-route =====#
+      #===============================#
+        # Prepare Innovus run
+        parprep_args = [
+            '-e', self.env_yml,
+            '-p', f'{build_dir}/syn-rundir/syn-output-full.json',
+            '-o', f'{build_dir}/par-input.json',
+            '--log', '/dev/null',
+            '--obj_dir', build_dir
+        ]
+        parprep_success = False
+        for _ in range(self._max_rerun):
+            parprep_success = self.CallHammer(parprep_args + ['syn-to-par'])
+            if parprep_success:
+                break
+            n_minutes = 15 + random.randint(0,15)
+            time.sleep(60 * n_minutes)
+
+        if not parprep_success:
+            raise HammerFailed(parprep_args + ['syn-to-par'])
+
+        self.interface.WriteSynAndParAttrToYml(scripts_for_all['syn'], scripts_for_all['par'])
+        self.base_conf += [
+            os.path.join(self.working_dir, self.interface.attr_cfg),
+            os.path.join(build_dir, 'inputs.yml'),
+            os.path.join(build_dir, 'sram_generator-input.yml')
+        ]
+
+        par_args = ['-e', self.env_yml]
+        for file in self.base_conf:
+            par_args += ['-p', file]
+        par_args += [
+            '--log', '/dev/null',
+            '--obj_dir', build_dir
+        ]
+        extra_par_args = ['-p', f'{build_dir}/par-input.json', 'par']
+
+        par_success = False
+        for _ in range(self._max_rerun):
+            par_success = self.CallHammer(par_args + extra_par_args)
+            if par_success:
+                break
+            n_minutes = 15 + random.randint(0,15)
+            time.sleep(60 * n_minutes)
+
+        if not par_success:
+            raise HammerFailed(par_args + extra_par_args)
+
       #========================#
       #========Get Loss========#
       #========================#
@@ -559,27 +661,13 @@ class VLSI_Observer(hammer_vlsi.CLIDriver):
         return self._threads_per_process
 
     # Hammer hook getter from CLIDriver
-    # def get_extra_par_hooks(self) -> List[hammer_vlsi.HammerToolHookAction]: #✓
-        # extra_hooks = [
-        #     # Insertion Hooks
-        #     hammer_vlsi.HammerTool.make_post_insertion_hook('init_design', ExtraHookParAttr),
-        #     # hammer_vlsi.HammerTool.make_post_insertion_hook('floorplan_design', ExtraHookParOverwriteFloorplan),
-        #     hammer_vlsi.HammerTool.make_post_insertion_hook('init_design', ExtraHookParDeleteSynDir), 
-        #     hammer_vlsi.HammerTool.make_pre_insertion_hook('clock_tree', ExtraHookParSetCells),
-        #     hammer_vlsi.HammerTool.make_post_insertion_hook('clock_tree', ExtraHookParDeleteCtsReport),
-        #     hammer_vlsi.HammerTool.make_post_insertion_hook('route_design', ExtraHookParReRoute),
-        #     hammer_vlsi.HammerTool.make_post_insertion_hook('write_design', ExtraHookParWriteReport),
-        #     # Replacement Hooks
-        #     hammer_vlsi.HammerTool.make_replacement_hook("power_straps", ReplaceHookParPowerStripe),
-        #     # hammer_vlsi.HammerTool.make_replacement_hook("route_design", ReplaceHookParRouteDesign),
-        #     # Removal Hooks
-        #     hammer_vlsi.HammerTool.make_removal_hook("place_bumps")
-        # ]
-        # if global_test_run_all:
-        #     extra_hooks.append(
-        #         hammer_vlsi.HammerTool.make_post_insertion_hook('write_design', ExtraHookSaveDesignForDebug)
-        #     )
-        # return extra_hooks
+    def get_extra_par_hooks(self) -> List[hammer_vlsi.HammerToolHookAction]:
+        extra_hooks = [
+            hammer_vlsi.HammerTool.make_post_insertion_hook('init_design', ExtraHookParRoutingLayers),
+            hammer_vlsi.HammerTool.make_replacement_hook('route_design', ReplaceHookParRouteDesign),
+            hammer_vlsi.HammerTool.make_replacement_hook('write_regs', ReplaceHookParWriteRegs)
+        ]
+        return extra_hooks
 
     def get_extra_synthesis_hooks(self) -> List[hammer_vlsi.HammerToolHookAction]: #✓
         extra_hooks = [
