@@ -68,11 +68,22 @@ class Macro(srcMacro: SRAMMacro) {
     name -> UIntLiteral(value, IntWidth(width))
   }
 
-  // Bundle representing this memory blackbox
-  val tpe: BundleType = BundleType(firrtlPorts.flatMap(_.tpe.fields))
+  private def dedupFields(fields: Seq[Field]): Seq[Field] = {
+    val seen = collection.mutable.HashSet[String]()
+    fields.filter { f => if (seen(f.name)) false else { seen += f.name; true } }
+  }
 
-  private val modPorts = firrtlPorts.flatMap(_.ports) ++
-    extraPorts.map { case (name, value) => Port(NoInfo, name, Input, value.tpe) }
+  private def dedupPorts(ports: Seq[Port]): Seq[Port] = {
+    val seen = collection.mutable.HashSet[String]()
+    ports.filter { p => if (seen(p.name)) false else { seen += p.name; true } }
+  }
+
+  // Bundle representing this memory blackbox
+  val tpe: BundleType = BundleType(dedupFields(firrtlPorts.flatMap(_.tpe.fields)))
+
+  private val modPorts =
+    dedupPorts(firrtlPorts.flatMap(_.ports)) ++
+      extraPorts.map { case (name, value) => Port(NoInfo, name, Input, value.tpe) }
   val blackbox: ExtModule = ExtModule(NoInfo, srcMacro.name, modPorts, srcMacro.name, Nil)
   def module(body: Statement): Module = Module(NoInfo, srcMacro.name, modPorts, body)
 }
