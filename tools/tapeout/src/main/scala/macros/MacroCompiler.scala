@@ -295,11 +295,26 @@ class MacroCompilerPass(
   }.toSeq
 
   def compile(mem: Macro, lib: Macro): Option[(Module, Macro)] = {
-    assert(
-      mem.sortedPorts.lengthCompare(lib.sortedPorts.length) == 0,
-      "mem and lib should have an equal number of ports"
+    require(
+      mem.sortedPorts.nonEmpty && lib.sortedPorts.nonEmpty,
+      "mem and lib must have at least one port"
     )
-    val pairedPorts = mem.sortedPorts.zip(lib.sortedPorts)
+
+    val libPortCount = lib.sortedPorts.length
+    val memPortCount = mem.sortedPorts.length
+    require(
+      memPortCount % libPortCount == 0,
+      s"mem port count $memPortCount must be a multiple of lib port count $libPortCount"
+    )
+
+    val portMultiplier = memPortCount / libPortCount
+
+    // Pair each mem port with a lib port and track which copy of the lib it should connect to
+    val pairedPorts = mem.sortedPorts.zipWithIndex.map { case (m, idx) =>
+      val l = lib.sortedPorts(idx % libPortCount)
+      val group = idx / libPortCount
+      (m, l, group)
+    }
 
     // Width mapping. See calculateBitPairs.
     val bitPairs: Seq[(BigInt, BigInt)] = calculateBitPairs(mem, lib)
@@ -343,8 +358,8 @@ class MacroCompilerPass(
       }
     }
     for ((_, i) <- BigInt(0).until(mem.src.depth, lib.src.depth).zipWithIndex) {
-      for (j <- bitPairs.indices) {
-        val name = s"mem_${i}_$j"
+      for (j <- bitPairs.indices; g <- 0 until portMultiplier) {
+        val name = s"mem_${i}_${j}_${g}"
         // Create the instance.
         stmts += WDefInstance(NoInfo, name, lib.src.name, lib.tpe)
         // Connect extra ports of the lib.
@@ -352,7 +367,7 @@ class MacroCompilerPass(
           Connect(NoInfo, WSubField(WRef(name), portName), portValue)
         }
       }
-      for ((memPort, libPort) <- pairedPorts) {
+      for ((memPort, libPort, group) <- pairedPorts) {
         val addrMatch = selects.get(memPort.src.address.name) match {
           case None => one
           case Some(addr) =>
@@ -370,7 +385,7 @@ class MacroCompilerPass(
         }
         val cats = ArrayBuffer[Expression]()
         for (((low, high), j) <- bitPairs.zipWithIndex) {
-          val inst = WRef(s"mem_${i}_$j", lib.tpe)
+          val inst = WRef(s"mem_${i}_${j}_${group}", lib.tpe)
 
           def connectPorts2(mem: Expression, lib: String, polarity: Option[PortPolarity]): Statement =
             Connect(NoInfo, WSubField(inst, lib), portToExpression(mem, polarity))
@@ -396,7 +411,7 @@ class MacroCompilerPass(
                * together a bunch of narrower memories, which can only be
                * done after generating all the memories.  This saves up the
                * output statements for later. */
-              val name = s"${mem}_${i}_$j" // This name is the output from the instance (mem vs ${mem}).
+              val name = s"${mem}_${i}_${j}_${group}" // This name is the output from the instance (mem vs ${mem}).
               val exp = portToExpression(bits(WSubField(inst, lib), high - low, 0), Some(lib_polarity))
               stmts += DefNode(NoInfo, name, exp)
               cats += WRef(name)
@@ -571,7 +586,7 @@ class MacroCompilerPass(
         // Cat macro outputs for selection
         memPort.src.output match {
           case Some(PolarizedPort(mem, _)) if cats.nonEmpty =>
-            val name = s"${mem}_$i"
+            val name = s"${mem}_${i}_${group}"
             stmts += DefNode(NoInfo, name, cat(cats.toSeq.reverse))
             outputs.getOrElseUpdate(mem, ArrayBuffer[(Expression, Expression)]()) +=
               (addrMatchReg -> WRef(name))
@@ -635,10 +650,11 @@ class MacroCompilerPass(
           // Try to compile mem against each lib in libs, keeping track of the
           // best compiled version, external lib used, and cost.
           val (best, _) = fullLibs.foldLeft(None: Option[(Module, Macro)], Double.MaxValue) {
-            case ((best, cost), lib) if mem.src.ports.size != lib.src.ports.size =>
+            case ((best, cost), lib)
+                if mem.src.ports.size % lib.src.ports.size != 0 =>
               /* Palmer: FIXME: This just assumes the Chisel and vendor ports are in the same
                * order, but I'm starting with what actually gets generated. */
-              System.err.println(s"INFO: unable to compile ${mem.src.name} using ${lib.src.name} port count must match")
+              System.err.println(s"INFO: unable to compile ${mem.src.name} using ${lib.src.name} incompatible port count")
               (best, cost)
             case ((best, cost), lib) =>
               // Run the cost function to evaluate this potential compile.
