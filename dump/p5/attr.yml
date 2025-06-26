@@ -1,0 +1,40 @@
+par:
+  innovus:
+    post_init_cmd: ''
+synthesis:
+  genus:
+    pre_syn_cmd:
+    - set_db time_recovery_arcs true
+    - set_db auto_partition false
+    - set_db dp_analytical_opt standard
+    - set_db dp_area_mode true
+    - set_db dp_csa none
+    - set_db dp_rewriting advanced
+    - set_db dp_sharing basic
+    - set_db exact_match_seq_async_ctrls true
+    - set_db exact_match_seq_sync_ctrls true
+    - set_db iopt_enable_floating_output_check true
+    - set_db iopt_force_constant_removal true
+    - set_db iopt_lp_power_analysis_effort medium
+    - set_db lbr_seq_in_out_phase_opto true
+    - set_db optimize_net_area false
+    - set_db retime_effort_level medium
+    - set_db retime_optimize_reset true
+    - set_db syn_generic_effort medium
+    - set_db syn_map_effort medium
+    - set_db syn_opt_effort medium
+    - set_db leakage_power_effort medium
+    - set_db lp_power_analysis_effort medium
+    - '#####'
+    - set_db [vfind /designs -design ChipTop] .latch_max_borrow 251
+    - '#####'
+    - set_db [vfind /designs -design ChipTop] .max_fanout 33
+    - '#####'
+    - set_db [vfind /designs -design ChipTop] .lp_clock_gating_max_flops 16
+    - '#####'
+    - set_db [vfind /designs -design ChipTop] .lp_power_optimization_weight 0.5
+    - if {"no_value" != [get_db [vfind /designs -design ChipTop] .lp_power_optimization_weight]}
+      {
+    - set_db [vfind /designs -design ChipTop] .max_dynamic_power 76.5
+    - set_db [vfind /designs -design ChipTop] .max_leakage_power 5.0
+    - '}'

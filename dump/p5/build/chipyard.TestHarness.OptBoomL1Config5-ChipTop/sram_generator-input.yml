@@ -1,0 +1,2 @@
+vlsi.inputs.sram_parameters: "/dump/p5/generated-src/chipyard.TestHarness.OptBoomL1Config5/chipyard.TestHarness.OptBoomL1Config5.mems.hammer.json"
+vlsi.inputs.sram_parameters_meta: ["transclude", "json2list"]

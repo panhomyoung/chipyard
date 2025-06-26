@@ -1,0 +1,272 @@
+[
+  {
+    "module_name": "tag_array_ext",
+    "depth": 64,
+    "width": 176,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 22,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.meta_0.tag_array.tag_array_ext"
+    ]
+  },
+  {
+    "module_name": "array_0_0_ext",
+    "depth": 256,
+    "width": 128,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 64,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_7_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_6_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_5_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_4_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_3_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_2_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_1_0.array_0_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.dcache.data.array_0_0.array_0_0_ext"
+    ]
+  },
+  {
+    "module_name": "tag_array_0_ext",
+    "depth": 64,
+    "width": 40,
+    "masked": true,
+    "read": false,
+    "write": false,
+    "readwrite": true,
+    "mask_granularity": 20,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.icache.tag_array.tag_array_0_ext"
+    ]
+  },
+  {
+    "module_name": "dataArrayB0Way_0_ext",
+    "depth": 256,
+    "width": 64,
+    "masked": false,
+    "read": false,
+    "write": false,
+    "readwrite": true,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.icache.dataArrayB1Way_1.dataArrayB0Way_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.icache.dataArrayB1Way_0.dataArrayB0Way_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.icache.dataArrayB0Way_1.dataArrayB0Way_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.icache.dataArrayB0Way_0.dataArrayB0Way_0_ext"
+    ]
+  },
+  {
+    "module_name": "hi_us_ext",
+    "depth": 128,
+    "width": 4,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 1,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_5.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_5.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_5.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_5.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_4.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_4.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_4.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_4.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_1.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_1.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_1.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_1.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_0.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_0.lo_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_0.hi_us.hi_us_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_0.hi_us.hi_us_ext"
+    ]
+  },
+  {
+    "module_name": "table_ext",
+    "depth": 128,
+    "width": 44,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 11,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_1.table.table_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_1.table.table_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_0.table.table_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_0.table.table_ext"
+    ]
+  },
+  {
+    "module_name": "hi_us_0_ext",
+    "depth": 256,
+    "width": 4,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 1,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_3.lo_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_3.lo_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_3.hi_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_3.hi_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_2.lo_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_2.lo_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_2.hi_us.hi_us_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_2.hi_us.hi_us_0_ext"
+    ]
+  },
+  {
+    "module_name": "table_0_ext",
+    "depth": 256,
+    "width": 48,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 12,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_3.table.table_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_3.table.table_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_2.table.table_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_2.table.table_0_ext"
+    ]
+  },
+  {
+    "module_name": "table_1_ext",
+    "depth": 128,
+    "width": 52,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 13,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_5.table.table_1_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_5.table.table_1_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_1.tables_4.table.table_1_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_1.tables_4.table.table_1_ext"
+    ]
+  },
+  {
+    "module_name": "meta_0_ext",
+    "depth": 128,
+    "width": 120,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 30,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_2.meta_1.meta_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_2.meta_1.meta_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_2.meta_0.meta_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_2.meta_0.meta_0_ext"
+    ]
+  },
+  {
+    "module_name": "btb_0_ext",
+    "depth": 128,
+    "width": 56,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 14,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_2.btb_1.btb_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_2.btb_1.btb_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_2.btb_0.btb_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_2.btb_0.btb_0_ext"
+    ]
+  },
+  {
+    "module_name": "ebtb_ext",
+    "depth": 128,
+    "width": 40,
+    "masked": false,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_2.ebtb.ebtb_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_2.ebtb.ebtb_ext"
+    ]
+  },
+  {
+    "module_name": "data_ext",
+    "depth": 2048,
+    "width": 8,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 2,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_1.components_4.data.data_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.bpd.banked_predictors_0.components_4.data.data_ext"
+    ]
+  },
+  {
+    "module_name": "meta_ext",
+    "depth": 40,
+    "width": 240,
+    "masked": false,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.ftq.meta.meta_ext"
+    ]
+  },
+  {
+    "module_name": "ghist_0_ext",
+    "depth": 40,
+    "width": 72,
+    "masked": false,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.ftq.ghist_1.ghist_0_ext",
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.frontend.ftq.ghist_0.ghist_0_ext"
+    ]
+  },
+  {
+    "module_name": "rob_debug_inst_mem_ext",
+    "depth": 26,
+    "width": 160,
+    "masked": true,
+    "read": true,
+    "write": true,
+    "readwrite": false,
+    "mask_granularity": 32,
+    "extra_ports": [],
+    "hierarchy": [
+      "ChipTop.system.tile_prci_domain.tile_reset_domain_boom_tile.core.rob.rob_debug_inst_mem.rob_debug_inst_mem_ext"
+    ]
+  }
+]
