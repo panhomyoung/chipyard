@@ -280,7 +280,7 @@ def main():
     sram_list_file, output_tcl_file, output_image_file = sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) == 4 else "floorplan_visualization.png"
 
     config = {
-        'sram_list_path': sram_list_file, 'DIE_WIDTH': 1920.0, 'DIE_HEIGHT': 1200.0,
+        'sram_list_path': sram_list_file, 'DIE_WIDTH': 2400.0, 'DIE_HEIGHT': 1500.0,
         'SRAM_WIDTH': 48.0, 'SRAM_HEIGHT': 100.0, 'CORE_MARGIN_X': 20.0, 'CORE_MARGIN_Y': 20.0,
         'CHANNEL_WIDTH': 20.0, 'MIN_SRAMS_PER_GROUP': 3, 'X_SPACING': 5.0, 'Y_SPACING': 5.0,
         'PLACEMENT_HALO_UM': 4.0, 'ROUTE_HALO_BOTTOM_LAYER': 'M1', 'ROUTE_HALO_TOP_LAYER': 'M6',
